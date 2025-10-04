@@ -88,7 +88,7 @@ func (p *UDPProxy) handlePacket(serverConn *net.UDPConn, clientAddr *net.UDPAddr
 
 	// Расшифровываем и отправляем на целевой сервер
 	decrypted := p.cipher.Process(data)
-	log.Printf("Forwarding %d bytes from %s data %s", len(decrypted), clientAddr.String(), hex.EncodeToString(data))
+	log.Printf("Forwarding %d bytes from %s to %s data %s", len(decrypted), clientAddr.String(), session.targetConn.RemoteAddr(), hex.EncodeToString(data))
 
 	_, err := session.targetConn.Write(decrypted)
 	if err != nil {
@@ -214,7 +214,7 @@ func main() {
 	// Статичный ключ (16 байт)
 	key := []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10}
 
-	proxy := NewUDPProxy(":8080", "localhost:8081", key)
+	proxy := NewUDPProxy(":3000", "95.181.161.66:3000", key)
 	//go main2()
 	//go send()
 	go proxy.Start()

@@ -39,7 +39,7 @@ func main2() {
 
 func send() {
 
-	targetAddr, err := net.ResolveUDPAddr("udp", "localhost:8080")
+	targetAddr, err := net.ResolveUDPAddr("udp", "95.181.161.66:3000")
 	if err != nil {
 		log.Printf("Resolve error: %v", err)
 		return

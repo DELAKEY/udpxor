@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type XORCipher struct {
@@ -88,7 +91,7 @@ func (p *UDPProxy) handlePacket(serverConn *net.UDPConn, clientAddr *net.UDPAddr
 
 	// Расшифровываем и отправляем на целевой сервер
 	decrypted := p.cipher.Process(data)
-	log.Printf("Forwarding %d bytes from %s to %s data %s", len(decrypted), clientAddr.String(), session.targetConn.RemoteAddr(), hex.EncodeToString(data))
+	//log.Printf("Forwarding %d bytes from %s to %s data %s", len(decrypted), clientAddr.String(), session.targetConn.RemoteAddr(), hex.EncodeToString(data))
 
 	_, err := session.targetConn.Write(decrypted)
 	if err != nil {
@@ -162,7 +165,7 @@ func (p *UDPProxy) forwardResponses(session *ClientSession) {
 				}
 				continue
 			}
-			log.Printf("Read from target error: %v", err)
+			//log.Printf("Read from target error: %v", err)
 			break
 		}
 
@@ -174,7 +177,7 @@ func (p *UDPProxy) forwardResponses(session *ClientSession) {
 			break
 		}
 
-		log.Printf("Forwarded %d bytes to %s", n, session.clientAddr.String())
+		//log.Printf("Forwarded %d bytes to %s", n, session.clientAddr.String())
 	}
 
 	p.removeSession(session.clientAddr.String())
@@ -210,14 +213,20 @@ func (p *UDPProxy) cleanupSessions() {
 }
 
 func main() {
+	godotenv.Load()
+	skey := os.Getenv("UDP_KEY")
+	target := os.Getenv("UDP_TARGET")
+
+	fmt.Println("KEY = ", skey)
 	var c = make(chan interface{})
 	// Статичный ключ (16 байт)
-	key := []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10}
+	//key := []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10}
 
-	proxy := NewUDPProxy(":3000", "95.181.161.66:3000", key)
+	key, _ := hex.DecodeString(skey)
+	proxy := NewUDPProxy(":3000", target, key)
 	//go main2()
 	//go send()
 	go proxy.Start()
-	fmt.Print("run")
+	fmt.Println("run")
 	<-c
 }
